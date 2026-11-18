@@ -5,7 +5,14 @@ import { loginAction } from "@/app/actions";
 import { getUser } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  if (!process.env.DATABASE_URL) redirect("/setup");
+  if (
+  !process.env.PGHOST ||
+  !process.env.PGUSER ||
+  !process.env.PGPASSWORD ||
+  !process.env.PGDATABASE
+) {
+  redirect("/setup");
+}
   const user = await getUser();
   if (user) redirect(user.role === "admin" ? "/admin" : "/portal");
   const { error } = await searchParams;
