@@ -43,7 +43,9 @@ export function Shell({ user, children, title, overline, actions }: {
   const isAdmin = user.role === "admin";
   return <div className="shell">
     <aside className="sidebar">
-      <div><Brand/><div className="nav-label">WORKSPACE</div>
+      <div>
+  <Brand variant={isAdmin ? "dark" : "light"} />
+  <div className="nav-label">WORKSPACE</div>
         <nav className="side-nav">
           <Link href={isAdmin ? "/admin" : "/portal"}><LayoutGrid size={18}/>Overview</Link>
           {isAdmin && <><Link href="/admin"><BriefcaseBusiness size={18}/>Clients</Link><Link href="/admin/clients/new"><Plus size={18}/>New workspace</Link></>}
