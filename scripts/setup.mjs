@@ -5,9 +5,16 @@ import { randomBytes, scryptSync } from 'node:crypto';
 import pg from 'pg';
 
 const env = process.env;
-if (!env.DATABASE_URL) throw new Error('Set DATABASE_URL first.');
-const pool = new pg.Pool({ connectionString: env.DATABASE_URL,
-  ssl: env.DATABASE_SSL === 'true' ? { rejectUnauthorized: true } : undefined });
+const pool = new pg.Pool({
+  host: env.PGHOST,
+  port: Number(env.PGPORT || 5432),
+  user: env.PGUSER,
+  password: env.PGPASSWORD,
+  database: env.PGDATABASE,
+  ssl: env.DATABASE_SSL === 'true'
+    ? { rejectUnauthorized: true }
+    : undefined,
+});
 const sqlFile = path.join(path.dirname(fileURLToPath(import.meta.url)), '../db/schema.sql');
 const sql = await readFile(sqlFile, 'utf8');
 try {
