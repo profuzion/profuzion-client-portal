@@ -3,12 +3,40 @@ import { ArrowRight, BriefcaseBusiness, CircleHelp, Globe2, LayoutGrid, LogOut, 
 import { logoutAction } from "@/app/actions";
 import type { User } from "@/lib/models";
 
-export function Brand({ compact = false }: { compact?: boolean }) {
-  return <Link href="/" className={`brand ${compact ? "brand-compact" : ""}`} aria-label="Profuzion client portal">
-    <span className="brand-symbol">P<span>.</span></span>
-    <span className="brand-label"><strong>PROFUZION</strong><small>STUDIO / WORKSPACE</small></span>
-  </Link>;
+
+export function Brand({
+  compact = false,
+  variant = "light",
+}: {
+  compact?: boolean;
+  variant?: "light" | "dark";
+}) {
+  const logo =
+    variant === "dark"
+      ? "/branding/PFS_logomark_dark.svg"
+      : "/branding/PFS_logomark_light.svg";
+
+  return (
+    <Link
+      href="/"
+      className={`brand ${compact ? "brand-compact" : ""}`}
+      aria-label="Profuzion client portal"
+    >
+      <img
+        src={logo}
+        alt=""
+        className="brand-logo"
+        width={44}
+        height={44}
+      />
+      <span className="brand-label">
+        <strong>PROFUZION</strong>
+        <small>STUDIO / WORKSPACE</small>
+      </span>
+    </Link>
+  );
 }
+
 export function Shell({ user, children, title, overline, actions }: {
   user: User; children: React.ReactNode; title: string; overline?: string; actions?: React.ReactNode;
 }) {
