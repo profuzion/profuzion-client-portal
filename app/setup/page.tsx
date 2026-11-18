@@ -4,7 +4,14 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 export default function Setup() {
-  if (process.env.DATABASE_URL) redirect("/login");
+  if (
+  process.env.PGHOST &&
+  process.env.PGUSER &&
+  process.env.PGPASSWORD &&
+  process.env.PGDATABASE
+) {
+  redirect("/login");
+}
   return <div className="invite-layout"><div className="invite-card">
     <Brand/><span className="auth-lock"><LockKeyhole size={22}/></span>
     <p className="overline">PROFUZION / PRIVATE WORKSPACE</p>
