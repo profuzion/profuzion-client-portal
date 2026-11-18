@@ -6,7 +6,7 @@
     "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
     "start": "next start --hostname 127.0.0.1 --port ${PORT:-3000}",
-    "db:setup": "node --env-file-if-exists=.env.local scripts/setup.mjs",
+    "db:setup": "node --env-file-if-exists=.env.local scripts/setup.js",
     "check": "tsc --noEmit",
     "start:cloudways": "node scripts/prepare.mjs && next start --hostname 127.0.0.1 --port ${PORT:-3000}"
   },
