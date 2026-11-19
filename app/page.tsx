@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { randomBytes, scryptSync } from "node:crypto";
 import { sql } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 async function createAdmin(formData: FormData) {
   "use server";
 

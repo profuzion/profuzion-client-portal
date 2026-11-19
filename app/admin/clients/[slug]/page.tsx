@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Copy, ExternalLink, MailPlus, Monitor, PencilLine, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Copy, ExternalLink, MailPlus, Monitor, PencilLine, Settings2, ShieldCheck } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Status, SectionIcon } from "@/components/ui";
 import { createInvitationAction, updatePreviewAction } from "@/app/actions";
@@ -13,7 +13,7 @@ export default async function AdminClient({ params, searchParams }: {
   const {slug}=await params;
   const client=await getClient(slug);
   const [sections, activities, query]=await Promise.all([getSections(client.id),getActivities(client.id),searchParams]);
-  return <Shell user={user} title={client.name} overline="CLIENT WORKSPACE / ADMINISTRATION" actions={<><Link className="btn btn-outline" href="/admin"><ArrowLeft size={16}/>All clients</Link><Link className="btn btn-primary" href={`/c/${slug}`}><ExternalLink size={16}/>View client experience</Link></>}>
+  return <Shell user={user} title={client.name} overline="CLIENT WORKSPACE / ADMINISTRATION" actions={<><Link className="btn btn-outline" href="/admin"><ArrowLeft size={16}/>All clients</Link><Link className="btn btn-outline" href={`/admin/clients/${slug}/settings`}><Settings2 size={16}/>Client Settings</Link><Link className="btn btn-primary" href={`/c/${slug}`}><ExternalLink size={16}/>View client experience</Link></>}>
     <p className="page-intro">{client.description || "Your central place to manage this client's proposals, strategy, identity, and website."}</p>
     {query.saved && <div className="notice notice-success" role="status">Changes saved successfully.</div>}
     {query.error && <div className="notice notice-error" role="alert">{query.error}</div>}
