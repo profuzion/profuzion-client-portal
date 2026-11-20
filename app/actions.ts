@@ -119,6 +119,33 @@ export async function createInvitationAction(form: FormData) {
   const inviteUrl = `${origin}/invite/${token}`;
   redirect(`${page}?invite=${encodeURIComponent(inviteUrl)}`);
 }
+
+export async function createPrivateReviewerAction(form: FormData) {
+  const admin = await requireAdmin();
+  const slug = value(form, "slug", 65);
+  const email = emailOf(form);
+  const password = String(form.get("password") ?? "").slice(0, 512);
+  const page = `/admin/clients/${slug}`;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 12) fail(page, "Enter a valid email and a password of at least 12 characters.");
+  const client = await sql<{ id: string }>("SELECT id FROM clients WHERE slug=$1 LIMIT 1", [slug]);
+  if (!client[0]) fail(page, "Client not found.");
+  const hash = await hashPassword(password);
+  await transaction(async db => {
+    const existing = await db.query<{ id: string; role: string }>("SELECT id,role FROM users WHERE email=$1 FOR UPDATE", [email]);
+    let userId: string;
+    if (existing.rows[0]) {
+      if (existing.rows[0].role === "admin") throw new Error("Cannot convert an admin account into a reviewer account.");
+      userId = existing.rows[0].id;
+      await db.query("UPDATE users SET password_hash=$2 WHERE id=$1", [userId, hash]);
+    } else {
+      const created = await db.query<{ id: string }>("INSERT INTO users(email,name,password_hash,role) VALUES($1,$2,$3,'client') RETURNING id", [email, "Winkler Reviewer", hash]);
+      userId = created.rows[0].id;
+    }
+    await db.query("INSERT INTO memberships(user_id,client_id,role) VALUES($1,$2,'viewer') ON CONFLICT(user_id,client_id) DO UPDATE SET role='viewer'", [userId, client[0].id]);
+    await db.query("INSERT INTO activities(client_id,label) VALUES($1,$2)", [client[0].id, `Private reviewer account ready for ${email}`]);
+  });
+  redirect(`${page}?reviewer=ready`);
+}
 export async function acceptInvitationAction(form: FormData) {
   const token = value(form, "token", 256);
   const name = value(form, "name", 150);
