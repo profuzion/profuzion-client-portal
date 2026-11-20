@@ -19,17 +19,12 @@ export async function loginAction(form: FormData) {
   const email = emailOf(form);
   const password = String(form.get("password") ?? "").slice(0, 512);
   if (!email || !password) fail("/login", "Enter your email and password.");
-  const [{ attempts }] = await sql<{ attempts: string }>(
-    "SELECT COUNT(*)::text AS attempts FROM failed_logins WHERE email=$1 AND occurred_at > now() - interval '15 minutes'", [email]);
-  if (Number(attempts) >= 8) fail("/login", "Too many attempts. Try again in 15 minutes.");
   const rows = await sql<{ id: string; password_hash: string; role: string }>(
     "SELECT id,password_hash,role FROM users WHERE email=$1 LIMIT 1", [email]);
   const valid = rows[0] ? await checkPassword(password, rows[0].password_hash) : false;
   if (!valid) {
-    await sql("INSERT INTO failed_logins (email) VALUES ($1)", [email]);
     fail("/login", "The credentials did not match.");
   }
-  await sql("DELETE FROM failed_logins WHERE email=$1", [email]);
   await startSession(rows[0].id);
   redirect(rows[0].role === "admin" ? "/admin" : "/portal");
 }
