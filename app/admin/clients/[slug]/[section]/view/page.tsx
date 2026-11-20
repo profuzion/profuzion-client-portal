@@ -21,6 +21,7 @@ export default async function AdminReview({ params }: { params: Promise<{ slug: 
     <Link href={`/admin/clients/${slug}/${section}`} className="btn btn-primary">Edit {data.title}</Link>
   </>}>
     <nav aria-label="Client sections" style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 24 }}>
+      <Link href={`/admin/clients/${slug}/agreements`} className="btn btn-outline">Agreements</Link>
       {sections.map(item => <Link key={item.id} href={`/admin/clients/${slug}/${item.kind}/view`} aria-current={item.kind === section ? "page" : undefined} className={`btn ${item.kind === section ? "btn-primary" : "btn-outline"}`}>{item.title}</Link>)}
     </nav>
     <p className="page-intro">{data.summary}</p>
