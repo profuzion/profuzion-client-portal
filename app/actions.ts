@@ -146,6 +146,24 @@ export async function createPrivateReviewerAction(form: FormData) {
   });
   redirect(`${page}?reviewer=ready`);
 }
+
+export async function resetPrivateReviewerPasswordAction(form: FormData) {
+  const admin = await requireAdmin();
+  const slug = value(form, "slug", 65);
+  const email = emailOf(form);
+  const password = String(form.get("password") ?? "").slice(0, 512);
+  const page = `/admin/clients/${slug}`;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 12) fail(page, "Enter a valid email and a password of at least 12 characters.");
+  const hash = await hashPassword(password);
+  const updated = await transaction(async db => {
+    const result = await db.query<{ id: string }>("UPDATE users u SET password_hash=$3 FROM memberships m JOIN clients c ON m.client_id=c.id WHERE m.user_id=u.id AND u.email=$1 AND c.slug=$2 AND u.role='client' RETURNING u.id", [email, slug, hash]);
+    if (!result.rowCount) return false;
+    await db.query("INSERT INTO activities(client_id,label) SELECT c.id,$2 FROM clients c WHERE c.slug=$1", [slug, `Private reviewer password reset for ${email}`]);
+    return true;
+  });
+  if (!updated) fail(page, "No client reviewer account exists for that email in this workspace. Create it first.");
+  redirect(`${page}?reviewer=reset`);
+}
 export async function acceptInvitationAction(form: FormData) {
   const token = value(form, "token", 256);
   const name = value(form, "name", 150);
