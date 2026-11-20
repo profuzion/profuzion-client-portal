@@ -7,8 +7,8 @@ const compress = promisify(gzip);
 const decompress = promisify(gunzip);
 export const clientSlug = "winkler-overhead-doors";
 export const clientName = "Winkler Overhead Doors";
-export const packageBytes = 7483552;
-export const packageDigest = "4c7e9d75487bd34baa67b4afe2956f045163cdffe9af080d87f2d14d6804a4e0";
+export const packageBytes = 7484455;
+export const packageDigest = "8e385b6df1f158f1998aa6b8fa7306d737003eabfcac3a043c8c72031f6920cd";
 export const scriptDigest = "FUwqzLcaYgOs/FmdsNeBcrDKz2sqfDsFDfiWtJk5li0=";
 
 async function attachmentTableExists() {
@@ -60,7 +60,12 @@ export async function attachPresentation(bytes: Buffer, expectedSectionId: strin
     )`);
     const prior = await db.query<{ section_id: string; digest: string }>("SELECT section_id,digest FROM public.proposal_presentations WHERE section_id=$1 OR digest=$2", [section.id, packageDigest]);
     if (prior.rowCount) {
-      return prior.rows.length === 1 && prior.rows[0].section_id === section.id && prior.rows[0].digest === packageDigest ? "attached" : "conflict";
+      if (prior.rows.length === 1 && prior.rows[0].section_id === section.id) {
+        await db.query("UPDATE public.proposal_presentations SET digest=$2,document_gzip=$3 WHERE section_id=$1", [section.id, packageDigest, document]);
+        await db.query("INSERT INTO activities(client_id,label) VALUES ($1,$2)", [section.client_id, "Interactive proposal updated"]);
+        return "attached";
+      }
+      return "conflict";
     }
     const approvals = await db.query("SELECT 1 FROM section_approvals WHERE section_id=$1 LIMIT 1", [section.id]);
     if (section.status === "approved" || approvals.rowCount) return "already-approved";

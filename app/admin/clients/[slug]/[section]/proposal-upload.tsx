@@ -28,8 +28,8 @@ export function ProposalUpload({ slug, sectionId }: { slug: string; sectionId: s
   }
   return <form onSubmit={attach} className="form-stack panel">
     <label>Interactive Winkler proposal<input required type="file" name="presentation" accept=".html,text/html" /></label>
-    <p className="helper">Attaching the file makes it visible to members of this workspace.</p>
-    <button disabled={busy} className="btn btn-primary" type="submit">{busy ? "Attaching..." : "Attach proposal"}</button>
+    <p className="helper">Uploading a newer file updates the attached presentation for members of this workspace.</p>
+    <button disabled={busy} className="btn btn-primary" type="submit">{busy ? "Updating..." : "Update proposal"}</button>
     {message && <p role="status">{message}</p>}
   </form>;
 }
