@@ -2,12 +2,12 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Copy, Eye, ExternalLink, MailPlus, Monitor, PencilLine, ShieldCheck } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Status, SectionIcon } from "@/components/ui";
-import { createInvitationAction, updatePreviewAction } from "@/app/actions";
+import { createInvitationAction, createPrivateReviewerAction, updatePreviewAction } from "@/app/actions";
 import { requireAdmin } from "@/lib/auth";
 import { getClient, getSections, getActivities } from "@/lib/data";
 export const dynamic = "force-dynamic";
 export default async function AdminClient({ params, searchParams }: {
-  params: Promise<{ slug: string }>; searchParams: Promise<{ invite?: string; saved?: string; error?: string }>;
+  params: Promise<{ slug: string }>; searchParams: Promise<{ invite?: string; reviewer?: string; saved?: string; error?: string }>;
 }) {
   const user = await requireAdmin();
   const {slug}=await params;
@@ -17,10 +17,13 @@ export default async function AdminClient({ params, searchParams }: {
     <p className="page-intro">{client.description || "Your central place to manage this client's proposals, strategy, identity, and website."}</p>
     {query.saved && <div className="notice notice-success" role="status">Changes saved successfully.</div>}
     {query.error && <div className="notice notice-error" role="alert">{query.error}</div>}
+    {query.reviewer && <div className="notice notice-success" role="status">Private reviewer access is ready. No email was sent.</div>}
     <div className="section-heading"><div><p className="overline">PRESENTATIONS & DELIVERABLES</p><h2>Project sections</h2></div><span className="muted small">4 separate areas</span></div>
     <div className="manage-section-grid">{sections.map(s=><div className="manage-section" key={s.id}><span className={`section-icon accent-${s.kind}`}><SectionIcon kind={s.kind}/></span><div><strong>{s.title}</strong><p>{s.summary}</p><Status status={s.status}/></div><Link href={`/admin/clients/${slug}/${s.kind}/view`} className="icon-btn" title={`Review ${s.title} as admin`}><Eye size={17}/></Link><Link href={`/admin/clients/${slug}/${s.kind}`} className="icon-btn" title={`Edit ${s.title}`}><PencilLine size={17}/></Link></div>)}</div>
     <div className="panel" style={{ marginTop: 20 }}><h2 className="panel-title">Signed agreements</h2><p className="muted">Completed contracts and agreements, available for secure viewing and download.</p><Link className="btn btn-outline" href={`/admin/clients/${slug}/agreements`}>Manage agreements</Link></div>
-    <div className="two-column-panels"><div className="panel"><div className="panel-heading"><div><p className="overline">COLLABORATION</p><h3>Invite your client</h3></div><MailPlus size={22}/></div><p className="muted">Issue a secure, one-time invitation link. Share it privately with your client. Links expire after seven days.</p>
+    <div className="two-column-panels"><div className="panel"><div className="panel-heading"><div><p className="overline">PRIVATE REVIEWER</p><h3>Create access directly</h3></div><ShieldCheck size={22}/></div><p className="muted">Create or reset a reviewer login for this client. This action does not send email.</p>
+      <form action={createPrivateReviewerAction} className="form-stack"><input type="hidden" name="slug" value={slug}/><label>Reviewer email<input name="email" type="email" defaultValue="winkleroverhead@gmail.com" required/></label><label>Reviewer password<input name="password" type="password" minLength={12} required/></label><button className="btn btn-primary" type="submit">Save private reviewer access</button></form>
+    </div><div className="panel"><div className="panel-heading"><div><p className="overline">COLLABORATION</p><h3>Invite your client</h3></div><MailPlus size={22}/></div><p className="muted">Issue a secure, one-time invitation link. Share it privately with your client. Links expire after seven days.</p>
       <form action={createInvitationAction} className="inline-form"><input type="hidden" name="slug" value={slug}/><label className="grow">Client email<input name="email" type="email" placeholder="client@company.com" required/></label><button className="btn btn-primary" type="submit">Generate invite</button></form>
       {query.invite && <div className="invite-output"><strong>Invitation link (shown once)</strong><input readOnly value={query.invite} aria-label="Invitation URL"/><p>Copy the URL above and send it to the intended recipient. Do not post it publicly.</p></div>}
       <p className="helper"><ShieldCheck size={15}/> Only authorized accounts can see this workspace.</p>
