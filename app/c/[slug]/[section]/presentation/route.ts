@@ -1,5 +1,5 @@
 import { requireClientAccess } from "@/lib/auth";
-import { readPresentation, scriptDigest } from "@/lib/winkler-proposal";
+import { readPresentation, presentationScripts } from "@/lib/winkler-proposal";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
     "X-Robots-Tag": "noindex, nofollow",
-    "Content-Security-Policy": `sandbox allow-scripts allow-modals allow-popups allow-popups-to-escape-sandbox; default-src 'none'; script-src 'sha256-${scriptDigest}'; style-src 'unsafe-inline'; img-src data:; font-src data:; form-action 'none'; base-uri 'none'; frame-ancestors 'none'`,
+    "Content-Security-Policy": `sandbox allow-scripts allow-modals allow-popups allow-popups-to-escape-sandbox; default-src 'none'; script-src ${presentationScripts(html)}; style-src 'unsafe-inline'; img-src data:; font-src data:; form-action 'none'; base-uri 'none'; frame-ancestors 'none'`,
   };
   return new Response(html, { status: html ? 200 : 404, headers });
 }

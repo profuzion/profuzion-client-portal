@@ -11,6 +11,12 @@ export const packageBytes = 7484455;
 export const packageDigest = "8e385b6df1f158f1998aa6b8fa7306d737003eabfcac3a043c8c72031f6920cd";
 export const scriptDigest = "FUwqzLcaYgOs/FmdsNeBcrDKz2sqfDsFDfiWtJk5li0=";
 
+// Hash scripts from the integrity-checked stored document, including earlier versions.
+export function presentationScripts(html: string | null) {
+  return Array.from((html || "").matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi),
+    match => `'sha256-${createHash("sha256").update(match[1]).digest("base64")}'`).join(" ") || "'none'";
+}
+
 async function attachmentTableExists() {
   const [result] = await sql<{ present: boolean }>(
     "SELECT to_regclass('public.proposal_presentations') IS NOT NULL AS present"
@@ -21,21 +27,24 @@ async function attachmentTableExists() {
 export async function hasPresentation(sectionId: string) {
   if (!(await attachmentTableExists())) return false;
   const rows = await sql(
-    "SELECT 1 FROM public.proposal_presentations WHERE section_id=$1 AND digest=$2",
-    [sectionId, packageDigest]
+    "SELECT 1 FROM public.proposal_presentations WHERE section_id=$1",
+    [sectionId]
   );
   return rows.length > 0;
 }
 
 export async function readPresentation(clientId: string) {
   if (!(await attachmentTableExists())) return null;
-  const [record] = await sql<{ document_gzip: Buffer }>(
-    `SELECT p.document_gzip FROM public.proposal_presentations p
+  const [record] = await sql<{ document_gzip: Buffer; digest: string }>(
+    `SELECT p.document_gzip,p.digest FROM public.proposal_presentations p
      JOIN sections s ON s.id=p.section_id
-     WHERE s.client_id=$1 AND s.kind='proposal' AND p.digest=$2`,
-    [clientId, packageDigest]
+     WHERE s.client_id=$1 AND s.kind='proposal'`,
+    [clientId]
   );
-  return record ? (await decompress(record.document_gzip)).toString("utf8") : null;
+  if (!record) return null;
+  const bytes = await decompress(record.document_gzip);
+  if (createHash("sha256").update(bytes).digest("hex") !== record.digest) return null;
+  return bytes.toString("utf8");
 }
 
 export async function attachPresentation(bytes: Buffer, expectedSectionId: string) {
