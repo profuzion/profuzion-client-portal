@@ -6,6 +6,8 @@ import { requireAdmin } from "@/lib/auth";
 import { getClient, getSection } from "@/lib/data";
 import { sectionOrder, statuses, statusNames } from "@/lib/models";
 import { notFound } from "next/navigation";
+import { clientName, clientSlug, hasPresentation } from "@/lib/winkler-proposal";
+import { ProposalUpload } from "./proposal-upload";
 export const dynamic = "force-dynamic";
 export default async function EditSection({ params, searchParams }: {
   params: Promise<{ slug: string; section: string }>;
@@ -16,9 +18,13 @@ export default async function EditSection({ params, searchParams }: {
   if (!sectionOrder.includes(section as typeof sectionOrder[number])) notFound();
   const client=await getClient(slug);
   const data=await getSection(client.id,section);
+  const attached = section === "proposal" && await hasPresentation(data.id);
+  const canAttach = !attached && section === "proposal" && slug === clientSlug && client.name === clientName;
   const {error}=await searchParams;
   return <Shell user={user} title={`Edit ${data.title}`} overline={`${client.name.toUpperCase()} / ${section.toUpperCase()}`} actions={<><Link href={`/admin/clients/${slug}`} className="btn btn-outline"><ArrowLeft size={16}/>Workspace</Link><Link href={`/c/${slug}/${section}`} className="btn btn-outline"><Eye size={16}/>Preview section</Link></>}>
     <p className="page-intro">Update what your client will see in this independent presentation section.</p>
+    {canAttach && <ProposalUpload slug={slug} sectionId={data.id} />}
+    {attached && <p><a className="btn btn-outline" href={`/c/${slug}/proposal/presentation`} target="_blank" rel="noopener noreferrer">View attached proposal <Eye size={16}/></a></p>}
     <div className="editor-grid"><div className="panel"><h2 className="panel-title">Presentation content</h2>{error && <div className="notice notice-error">{error}</div>}
       <form action={updateSectionAction} className="form-stack"><input type="hidden" name="slug" value={slug}/><input type="hidden" name="kind" value={section}/>
         <label>Section title<input name="title" defaultValue={data.title} maxLength={120} required/></label>
