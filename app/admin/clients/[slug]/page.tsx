@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Copy, ExternalLink, MailPlus, Monitor, PencilLine, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Copy, Eye, ExternalLink, MailPlus, Monitor, PencilLine, ShieldCheck } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { Status, SectionIcon } from "@/components/ui";
 import { createInvitationAction, updatePreviewAction } from "@/app/actions";
@@ -18,7 +18,7 @@ export default async function AdminClient({ params, searchParams }: {
     {query.saved && <div className="notice notice-success" role="status">Changes saved successfully.</div>}
     {query.error && <div className="notice notice-error" role="alert">{query.error}</div>}
     <div className="section-heading"><div><p className="overline">PRESENTATIONS & DELIVERABLES</p><h2>Project sections</h2></div><span className="muted small">4 separate areas</span></div>
-    <div className="manage-section-grid">{sections.map(s=><div className="manage-section" key={s.id}><span className={`section-icon accent-${s.kind}`}><SectionIcon kind={s.kind}/></span><div><strong>{s.title}</strong><p>{s.summary}</p><Status status={s.status}/></div><Link href={`/admin/clients/${slug}/${s.kind}`} className="icon-btn" title={`Edit ${s.title}`}><PencilLine size={17}/></Link></div>)}</div>
+    <div className="manage-section-grid">{sections.map(s=><div className="manage-section" key={s.id}><span className={`section-icon accent-${s.kind}`}><SectionIcon kind={s.kind}/></span><div><strong>{s.title}</strong><p>{s.summary}</p><Status status={s.status}/></div><Link href={`/c/${slug}/${s.kind}`} className="icon-btn" title={`Review ${s.title} as admin`}><Eye size={17}/></Link><Link href={`/admin/clients/${slug}/${s.kind}`} className="icon-btn" title={`Edit ${s.title}`}><PencilLine size={17}/></Link></div>)}</div>
     <div className="two-column-panels"><div className="panel"><div className="panel-heading"><div><p className="overline">COLLABORATION</p><h3>Invite your client</h3></div><MailPlus size={22}/></div><p className="muted">Issue a secure, one-time invitation link. Share it privately with your client. Links expire after seven days.</p>
       <form action={createInvitationAction} className="inline-form"><input type="hidden" name="slug" value={slug}/><label className="grow">Client email<input name="email" type="email" placeholder="client@company.com" required/></label><button className="btn btn-primary" type="submit">Generate invite</button></form>
       {query.invite && <div className="invite-output"><strong>Invitation link (shown once)</strong><input readOnly value={query.invite} aria-label="Invitation URL"/><p>Copy the URL above and send it to the intended recipient. Do not post it publicly.</p></div>}
