@@ -7,15 +7,18 @@ import { requireClientAccess } from "@/lib/auth";
 import { getClient, getSection } from "@/lib/data";
 import { sectionOrder } from "@/lib/models";
 import { notFound } from "next/navigation";
+import { hasPresentation } from "@/lib/winkler-proposal";
 export const dynamic = "force-dynamic";
 export default async function ClientSection({ params }: { params: Promise<{slug:string;section:string}> }) {
   const {slug,section}=await params;
   if(!sectionOrder.includes(section as typeof sectionOrder[number]))notFound();
   const {user,clientId}=await requireClientAccess(slug);
   const [client,data]=await Promise.all([getClient(slug),getSection(clientId,section)]);
+  const attached = section === "proposal" && await hasPresentation(data.id);
   return <Shell user={user} title={data.title} overline={`${client.name.toUpperCase()} / YOUR PROJECT`} actions={<Link href={`/c/${slug}`} className="btn btn-outline"><ArrowLeft size={16}/>Overview</Link>}>
     <p className="page-intro">{data.summary}</p><div className="presentation"><div className={`presentation-head accent-${section}`}><span className="presentation-symbol"><SectionIcon kind={data.kind} size={30}/></span><div><p className="overline">THE PROFUZION PROCESS / {section.toUpperCase()}</p><h2>{data.title}</h2><p>{data.summary}</p></div><span className="presentation-index">0{sectionOrder.indexOf(data.kind)+1} / 04</span></div>
     <div className="presentation-body"><div className="presentation-main"><p className="overline">YOUR PRESENTATION</p><div className="presentation-content">{data.body.split(/\n\s*\n/).filter(Boolean).map((paragraph,i)=><p key={i}>{paragraph}</p>)}</div>
+      {attached && <a className="btn btn-primary" href={`/c/${slug}/proposal/presentation`} target="_blank" rel="noopener noreferrer">Open interactive proposal <ExternalLink size={16}/></a>}
       {user.role === "client" && data.status === "review" &&
         <form action={approveSectionAction} className="approval-form"><input type="hidden" name="slug" value={slug}/><input type="hidden" name="kind" value={section}/>
           <p>Please review the presentation carefully before approving.</p>
