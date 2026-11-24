@@ -8,7 +8,7 @@ export default async function Agreements({ params }: { params: Promise<{ slug: s
   const { slug } = await params;
   const { user, clientId } = await requireClientAccess(slug);
   const client = await getClient(slug);
-  return <Shell user={user} title="Signed agreements" overline={`${client.name.toUpperCase()} / WORKSPACE`} actions={<Link href={user.role === "admin" ? `/admin/clients/${slug}/agreements` : `/c/${slug}`} className="btn btn-outline">{user.role === "admin" ? "Manage agreements" : "Back to workspace"}</Link>}>
+  return <Shell user={user} clientSlug={slug} title="Signed agreements" overline={`${client.name.toUpperCase()} / WORKSPACE`} actions={<Link href={user.role === "admin" ? `/admin/clients/${slug}/agreements` : `/c/${slug}`} className="btn btn-outline">{user.role === "admin" ? "Manage agreements" : "Back to workspace"}</Link>}>
     <p className="page-intro">View and download your completed agreements in one place.</p>
     <AgreementList clientId={clientId} slug={slug}/>
   </Shell>;

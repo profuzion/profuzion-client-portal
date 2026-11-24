@@ -20,6 +20,9 @@ const sqlFile = path.join(path.dirname(fileURLToPath(import.meta.url)), '../db/s
 const sql = await readFile(sqlFile, 'utf8');
 try {
   await pool.query(sql);
+  await pool.query(await readFile(path.join(path.dirname(sqlFile), 'brand-schema.sql'), 'utf8'));
+  await pool.query(await readFile(path.join(path.dirname(sqlFile), 'portal-schema.sql'), 'utf8'));
+  await pool.query(await readFile(path.join(path.dirname(sqlFile), 'assets-schema.sql'), 'utf8'));
   console.log('Database schema ready.');
   const { BOOTSTRAP_ADMIN_EMAIL: email, BOOTSTRAP_ADMIN_PASSWORD: password, BOOTSTRAP_ADMIN_NAME: name } = env;
   if (email && password) {
@@ -32,4 +35,15 @@ try {
       [email.trim().toLowerCase(), name?.trim() || 'Profuzion Admin', `scrypt:${salt}:${hash}`]);
     console.log(result.rowCount ? 'Admin account created.' : 'Admin already exists; password not changed.');
   } else console.log('No admin created. Add BOOTSTRAP_ADMIN_* variables and re-run this script.');
+  // Make the existing agency logos available as private drafts; never overwrite uploads.
+  const owner = await pool.query("SELECT id FROM users WHERE role='admin' ORDER BY created_at LIMIT 1");
+  if (owner.rows[0]) {
+    for (const [id, filename, title, usage] of [
+      ['e74776e5-1af4-4c21-bc76-3f2ff2610101', 'PFS_logomark_dark.svg', 'Profuzion logomark — for light backgrounds', 'SVG vector artwork for light backgrounds.'],
+      ['e74776e5-1af4-4c21-bc76-3f2ff2610102', 'PFS_logomark_light.svg', 'Profuzion logomark — for dark backgrounds', 'SVG vector artwork for dark backgrounds.'],
+    ]) {
+      const data = await readFile(path.join(path.dirname(sqlFile), '../public/branding', filename));
+      await pool.query("INSERT INTO brand_assets(id,scope,title,category,filename,mime,size_bytes,data,usage_notes,uploaded_by) VALUES($1,'agency',$2,'logos',$3,'image/svg+xml',$4,$5,$6,$7) ON CONFLICT(id) DO NOTHING", [id,title,filename,data.length,data,usage,owner.rows[0].id]);
+    }
+  }
 } finally { await pool.end(); }

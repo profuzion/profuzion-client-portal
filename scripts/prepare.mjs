@@ -1,7 +1,6 @@
-// Cloudways creates an app before its PostgreSQL database can be attached.
-// Start with a safe setup screen; on redeploy with DATABASE_URL, initialize the schema.
-if (process.env.DATABASE_URL) {
-  await import("./setup.mjs");
+// Apply repeatable migrations before serving the new application.
+if (process.env.PGHOST && process.env.PGDATABASE) {
+  await import("./setup.js");
 } else {
-  console.warn("DATABASE_URL not configured; app will display setup status until database is connected.");
+  console.warn("PostgreSQL is not configured. Set PGHOST and PGDATABASE before running database setup.");
 }
